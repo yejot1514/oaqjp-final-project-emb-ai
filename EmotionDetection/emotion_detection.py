@@ -6,23 +6,32 @@ def emotion_detector(text_to_analyse):  # Define a function named emotion_detect
     header = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"} # Set the headers required for the API request
     response = requests.post(url, json = myobj, headers=header)  # Send a POST request to the API with the text and headers
     formatted_response = json.loads(response.text)
-    # Extracting sentiment label and score from the response
-    emotion_response = formatted_response['emotionPredictions'][0]['emotion']
-    anger_score = emotion_response['anger']
-    disgust_score = emotion_response['disgust']
-    fear_score = emotion_response['fear']
-    joy_score = emotion_response['joy']
-    sadness_score = emotion_response['sadness']
-    # Returning a dictionary containing emotion analysis results
-    dominant_emotion = 'anger'
-    dominant_emotion_score = emotion_response[dominant_emotion]
-    for key, value in emotion_response.items():
-        if(value > dominant_emotion_score):
-            dominant_emotion_score = value
-            dominant_emotion = key
+    # Extracting the emotions from the response
+    if response.status_code == 200:
+        emotion_response = formatted_response['emotionPredictions'][0]['emotion']
+        anger_score = emotion_response['anger']
+        disgust_score = emotion_response['disgust']
+        fear_score = emotion_response['fear']
+        joy_score = emotion_response['joy']
+        sadness_score = emotion_response['sadness']
+        dominant_emotion = max(emotion_response, key=emotion_response.get)
+    elif response.status_code == 400:
+        anger_score = None
+        disgust_score = None
+        fear_score = None
+        joy_score = None
+        sadness_score = None
+        dominant_emotion = None
     
-    emotion_dict = {'anger': anger_score, 'disgust': disgust_score, 'fear': fear_score, 'sadness': sadness_score, 'dominant_emotion': dominant_emotion}
-    return emotion_dict
+    return {
+              'anger': anger_score,
+              'disgust': disgust_score, 
+              'fear': fear_score, 
+              'joy': joy_score,  
+              'sadness': sadness_score, 
+              'dominant_emotion': dominant_emotion
+            }
+    
     
 
     
